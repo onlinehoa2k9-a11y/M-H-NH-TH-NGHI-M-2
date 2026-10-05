@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mô Hình & Công Thức Giáo Dục THPT (Vật Lý - Toán - Hóa)</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            },
+            physics: '#06b6d4',
+            math: '#8b5cf6',
+            chem: '#10b981',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- KaTeX CSS & JS for Math Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Chart.js for real-time graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Math.js for symbolic differentiation and math parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.5);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.8);
+    }
+
+    /* Tab transitions */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Periodic Table Grid */
+    .ptable-grid {
+      display: grid;
+      grid-template-columns: repeat(18, minmax(42px, 1fr));
+      gap: 4px;
+    }
+
+    /* Canvas full container fix */
+    canvas {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- Header Bar -->
+  <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md px-4 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/20">
+          <i class="fa-solid fa-atom text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
+            THPT STEM Studio
+          </h1>
+          <p class="text-xs text-slate-400">Mô hình Thí nghiệm & Công thức Vật Lý - Toán - Hóa 10-12</p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs -->
+      <nav class="hidden md:flex items-center space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60">
+        <button onclick="switchTab('physics')" id="nav-btn-physics" class="nav-tab active flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-150 bg-cyan-600 text-white shadow-md">
+          <i class="fa-solid fa-bolt text-cyan-200"></i>
+          <span>Vật Lý</span>
+        </button>
+        <button onclick="switchTab('math')" id="nav-btn-math" class="nav-tab flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm text-slate-400 hover:text-slate-200 transition-all duration-150">
+          <i class="fa-solid fa-square-root-variable text-purple-400"></i>
+          <span>Toán Học</span>
+        </button>
+        <button onclick="switchTab('chem')" id="nav-btn-chem" class="nav-tab flex items-center space-x-2 px-4 py-2 rounded-lg font-medium text-sm text-slate-400 hover:text-slate-200 transition-all duration-150">
+          <i class="fa-solid fa-flask text-emerald-400"></i>
+          <span>Hóa Học</span>
+        </button>
+      </nav>
+
+      <!-- Right Controls -->
+      <div class="flex items-center space-x-2">
+        <button onclick="openApiKeyModal()" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-medium rounded-lg border border-slate-700 text-slate-300 transition">
+          <i class="fa-solid fa-key text-amber-400"></i>
+          <span class="hidden sm:inline">Gemini Key</span>
+        </button>
+        <button onclick="toggleTheme()" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition">
+          <i id="theme-icon" class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Nav Bar -->
+    <div class="flex md:hidden items-center justify-around mt-2 pt-2 border-t border-slate-800/80">
+      <button onclick="switchTab('physics')" id="mnav-physics" class="flex-1 py-1 text-center font-medium text-xs text-cyan-400 border-b-2 border-cyan-400">
+        <i class="fa-solid fa-bolt block text-sm"></i> Vật Lý
+      </button>
+      <button onclick="switchTab('math')" id="mnav-math" class="flex-1 py-1 text-center font-medium text-xs text-slate-400">
+        <i class="fa-solid fa-square-root-variable block text-sm"></i> Toán Học
+      </button>
+      <button onclick="switchTab('chem')" id="mnav-chem" class="flex-1 py-1 text-center font-medium text-xs text-slate-400">
+        <i class="fa-solid fa-flask block text-sm"></i> Hóa Học
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+    <!-- TAB 1: VẬT LÝ -->
+    <section id="tab-physics" class="tab-content active space-y-6">
+      <!-- Sub Nav for Physics Modules -->
+      <div class="flex items-center space-x-2 overflow-x-auto pb-2 border-b border-slate-800 scrollbar-none">
+        <button onclick="switchPhysicsSub('shm')" class="psub-btn active px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-cyan-600/30 text-cyan-300 border border-cyan-500/40">
+          1. Dao Động Điều Hòa
+        </button>
+        <button onclick="switchPhysicsSub('wave')" class="psub-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-slate-800 text-slate-400 hover:text-slate-200">
+          2. Giao Thoa Sóng Cơ
+        </button>
+        <button onclick="switchPhysicsSub('optics')" class="psub-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-slate-800 text-slate-400 hover:text-slate-200">
+          3. Giao Thoa Sóng Ánh Sáng
+        </button>
+        <button onclick="switchPhysicsSub('lorentz')" class="psub-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-slate-800 text-slate-400 hover:text-slate-200">
+          4. Lực Lorentz & Từ Trường
+        </button>
+        <button onclick="switchPhysicsSub('gas')" class="psub-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-slate-800 text-slate-400 hover:text-slate-200">
+          5. Khí Lý Tưởng (Lớp 12)
+        </button>
+        <button onclick="switchPhysicsSub('handrules')" class="psub-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-slate-800 text-slate-400 hover:text-slate-200">
+          6. Quy Tắc Bàn Tay
+        </button>
+        <button onclick="switchPhysicsSub('formulas')" class="psub-btn px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-slate-800 text-slate-400 hover:text-slate-200">
+          7. Tra Cứu Công Thức
+        </button>
+      </div>
+
+      <!-- 1. DAO ĐỘNG ĐIỀU HÒA -->
+      <div id="psub-shm" class="psub-content grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Canvas & Controls -->
+        <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-cyan-400 flex items-center gap-2">
+              <i class="fa-solid fa-wave-square"></i> Mô phỏng Dao động Điều hòa
+            </h3>
+            <div class="flex gap-2">
+              <button id="shm-type-spring" onclick="setShmType('spring')" class="px-2.5 py-1 text-xs rounded-lg bg-cyan-600 text-white font-medium">Con lắc lò xo</button>
+              <button id="shm-type-pendulum" onclick="setShmType('pendulum')" class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 text-slate-400 font-medium hover:text-white">Con lắc đơn</button>
+            </div>
+          </div>
+
+          <div class="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 h-64 flex items-center justify-center">
+            <canvas id="canvas-shm" class="w-full h-full block"></canvas>
+            <div id="shm-metrics" class="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-800 text-xs space-y-0.5">
+              <div>x = <span id="val-shm-x" class="text-cyan-400 font-mono font-bold">0.0</span> cm</div>
+              <div>v = <span id="val-shm-v" class="text-emerald-400 font-mono font-bold">0.0</span> cm/s</div>
+              <div>a = <span id="val-shm-a" class="text-amber-400 font-mono font-bold">0.0</span> cm/s²</div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 text-xs">
+            <div>
+              <label class="text-slate-400 block mb-1">Biên độ $A$: <span id="lbl-shm-A" class="text-cyan-400 font-bold">8</span> cm</label>
+              <input type="range" id="slider-shm-A" min="2" max="15" step="0.5" value="8" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Tần số góc $\omega$: <span id="lbl-shm-w" class="text-cyan-400 font-bold">4.0</span> rad/s</label>
+              <input type="range" id="slider-shm-w" min="1" max="10" step="0.2" value="4" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Pha ban đầu $\varphi$: <span id="lbl-shm-phi" class="text-cyan-400 font-bold">0</span> rad</label>
+              <input type="range" id="slider-shm-phi" min="-3.14" max="3.14" step="0.15" value="0" class="w-full accent-cyan-500">
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center pt-2">
+            <button onclick="togglePlayShm()" id="btn-shm-play" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-cyan-600/20">
+              <i class="fa-solid fa-pause"></i> <span>Tạm dừng</span>
+            </button>
+            <div class="text-xs text-slate-400 font-mono">
+              $T = \frac{2\pi}{\omega} = $ <span id="val-shm-T" class="text-white">1.57</span>s | $f = $ <span id="val-shm-f" class="text-white">0.64</span>Hz
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Chart -->
+        <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <h3 class="font-semibold text-cyan-400 flex items-center gap-2 mb-2 text-sm">
+            <i class="fa-chart-line"></i> Đồ Thị Li Độ x(t), Vận Tốc v(t) & Gia Tốc a(t)
+          </h3>
+          <div class="relative flex-1 min-h-[260px]">
+            <canvas id="chart-shm"></canvas>
+          </div>
+          <div class="mt-3 p-3 bg-slate-950/80 rounded-xl text-xs space-y-1 text-slate-300 border border-slate-800">
+            <p><strong>Công thức cơ bản:</strong></p>
+            <p>• Li độ: $x = A \cos(\omega t + \varphi)$</p>
+            <p>• Vận tốc: $v = x' = -\omega A \sin(\omega t + \varphi)$ (sớm pha $\pi/2$ so với x)</p>
+            <p>• Gia tốc: $a = v' = -\omega^2 A \cos(\omega t + \varphi) = -\omega^2 x$ (ngược pha so với x)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. GIAO THOA SÓNG CƠ -->
+      <div id="psub-wave" class="psub-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-cyan-400 flex items-center gap-2">
+              <i class="fa-solid fa-water"></i> Mô Phỏng Giao Thoa Sóng Mặt Nước (2D)
+            </h3>
+            <span class="text-xs text-slate-400">2 Nguồn kết hợp $S_1, S_2$</span>
+          </div>
+
+          <div class="relative bg-black rounded-xl overflow-hidden border border-slate-800 h-80">
+            <canvas id="canvas-wave" class="w-full h-full block"></canvas>
+          </div>
+
+          <!-- Wave Controls -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs">
+            <div>
+              <label class="text-slate-400 block mb-1">Bước sóng $\lambda$: <span id="lbl-wave-lam" class="text-cyan-400 font-bold">25</span> px</label>
+              <input type="range" id="slider-wave-lam" min="10" max="50" step="1" value="25" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Khoảng cách $d (S_1S_2)$: <span id="lbl-wave-d" class="text-cyan-400 font-bold">120</span> px</label>
+              <input type="range" id="slider-wave-d" min="60" max="220" step="5" value="120" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Độ lệch pha $\Delta\varphi$: <span id="lbl-wave-dphi" class="text-cyan-400 font-bold">0 (Đồng pha)</span></label>
+              <select id="select-wave-phase" class="w-full bg-slate-800 border border-slate-700 text-white rounded p-1 text-xs">
+                <option value="0">0 - Đồng pha</option>
+                <option value="3.14159">$\pi$ - Ngược pha</option>
+                <option value="1.5708">$\pi/2$ - Vuông pha</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="space-y-4">
+            <h3 class="font-semibold text-cyan-400 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-circle-info"></i> Lý Thuyết Giao Thoa Sóng
+            </h3>
+            <div class="bg-slate-950 p-4 rounded-xl text-xs space-y-3 border border-slate-800">
+              <div>
+                <p class="font-bold text-emerald-400 mb-1">1. Điểm cực đại giao thoa (Biên độ $2A$):</p>
+                <p class="text-slate-300 font-mono">$d_2 - d_1 = k\lambda \quad (k \in \mathbb{Z})$</p>
+                <p class="text-slate-400 mt-1">Các vân cực đại hiển thị là những đường Hyperbol nét liền.</p>
+              </div>
+
+              <div class="border-t border-slate-800 pt-2">
+                <p class="font-bold text-rose-400 mb-1">2. Điểm cực tiểu giao thoa (Biên độ $0$):</p>
+                <p class="text-slate-300 font-mono">$d_2 - d_1 = (k + 0.5)\lambda \quad (k \in \mathbb{Z})$</p>
+                <p class="text-slate-400 mt-1">Các vân cực tiểu hiển thị là những đường Hyperbol nét đứt (hoặc tối).</p>
+              </div>
+
+              <div class="border-t border-slate-800 pt-2">
+                <p class="font-bold text-amber-400 mb-1">3. Số vân giao thoa trên đoạn $S_1S_2$:</p>
+                <p class="text-slate-300 font-mono">$-\frac{S_1S_2}{\lambda} < k < \frac{S_1S_2}{\lambda}$</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-cyan-950/40 border border-cyan-800/50 rounded-xl text-xs text-cyan-200">
+            💡 <strong>Mẹo quan sát:</strong> Tăng bước sóng $\lambda$ sẽ làm các đường vân hyperbol giãn rộng ra xa nhau hơn!
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. GIAO THOA SÓNG ÁNH SÁNG (Y-ÂNG) -->
+      <div id="psub-optics" class="psub-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-cyan-400 flex items-center gap-2">
+              <i class="fa-solid fa-lightbulb"></i> Thí Nghiệm Giao Thoa Ánh Sáng Y-âng
+            </h3>
+            <span id="optics-color-badge" class="px-2.5 py-1 text-xs font-bold rounded-lg text-black bg-red-500">
+              $\lambda = 650$ nm (Đỏ)
+            </span>
+          </div>
+
+          <!-- Canvas visual -->
+          <div class="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 h-64 flex items-center justify-center">
+            <canvas id="canvas-optics" class="w-full h-full block"></canvas>
+          </div>
+
+          <!-- Sliders -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs">
+            <div>
+              <label class="text-slate-400 block mb-1">Bước sóng $\lambda$: <span id="lbl-optics-lam" class="text-cyan-400 font-bold">650</span> nm</label>
+              <input type="range" id="slider-optics-lam" min="380" max="750" step="5" value="650" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Khoảng cách 2 khe $a$: <span id="lbl-optics-a" class="text-cyan-400 font-bold">1.0</span> mm</label>
+              <input type="range" id="slider-optics-a" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Khoảng cách tới màn $D$: <span id="lbl-optics-D" class="text-cyan-400 font-bold">2.0</span> m</label>
+              <input type="range" id="slider-optics-D" min="0.5" max="4.0" step="0.1" value="2.0" class="w-full accent-cyan-500">
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="space-y-4">
+            <h3 class="font-semibold text-cyan-400 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-calculator"></i> Tính Toán Khoảng Vân $i$ & Vị Trí Vân
+            </h3>
+
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span class="text-slate-400 text-xs">Khoảng vân $i = \frac{\lambda D}{a}$:</span>
+                <span id="val-optics-i" class="text-lg font-bold font-mono text-emerald-400">1.30 mm</span>
+              </div>
+
+              <div class="space-y-1.5 text-xs">
+                <p class="text-slate-300 font-semibold">Công thức vị trí vân trên màn:</p>
+                <p class="text-amber-300">• Vân sáng bậc $k$: $x_s = k \cdot i = k \cdot \frac{\lambda D}{a}$</p>
+                <p class="text-indigo-300">• Vân tối thứ $k$: $x_t = (k - 0.5) \cdot i$</p>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800 text-xs text-slate-400">
+                <p><strong>Vị trí vân cụ thể:</strong></p>
+                <p>• Vân sáng bậc 1: $\pm$ <span id="optics-x1" class="text-white">1.30</span> mm</p>
+                <p>• Vân sáng bậc 2: $\pm$ <span id="optics-x2" class="text-white">2.60</span> mm</p>
+                <p>• Vân tối thứ 1: $\pm$ <span id="optics-xt1" class="text-white">0.65</span> mm</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400">
+            🌈 Ánh sáng nhìn thấy nằm trong vùng bước sóng từ 380 nm (Tím) đến 750 nm (Đỏ).
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. LỰC LORENTZ & HẠT MANG ĐIỆN TRONG TỪ TRƯỜNG -->
+      <div id="psub-lorentz" class="psub-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-cyan-400 flex items-center gap-2">
+              <i class="fa-solid fa-magnet"></i> Chuyển Động Hạt Mang Điện Trong Từ Trường Đều
+            </h3>
+            <div class="flex items-center gap-2 text-xs">
+              <label class="text-slate-400">Điện tích $q$:</label>
+              <button id="btn-q-pos" onclick="setChargeSign(1)" class="px-2 py-0.5 rounded bg-rose-600 text-white font-bold">$q > 0$</button>
+              <button id="btn-q-neg" onclick="setChargeSign(-1)" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-bold">$q < 0$</button>
+            </div>
+          </div>
+
+          <div class="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 h-80">
+            <canvas id="canvas-lorentz" class="w-full h-full block"></canvas>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs">
+            <div>
+              <label class="text-slate-400 block mb-1">Vận tốc $v$: <span id="lbl-lor-v" class="text-cyan-400 font-bold">5.0</span> $\times 10^5$ m/s</label>
+              <input type="range" id="slider-lor-v" min="1" max="10" step="0.5" value="5" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Cảm ứng từ $B$: <span id="lbl-lor-B" class="text-cyan-400 font-bold">0.20</span> T</label>
+              <input type="range" id="slider-lor-B" min="0.05" max="0.5" step="0.02" value="0.2" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Khối lượng $m$: <span id="lbl-lor-m" class="text-cyan-400 font-bold">E-lectron</span></label>
+              <select id="select-lor-particle" class="w-full bg-slate-800 border border-slate-700 text-white rounded p-1 text-xs">
+                <option value="e">Electron ($9.1 \times 10^{-31}$ kg)</option>
+                <option value="p">Proton ($1.67 \times 10^{-27}$ kg)</option>
+                <option value="alpha">Hạt Alpha ($\alpha$)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <div class="space-y-4">
+            <h3 class="font-semibold text-cyan-400 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-square-root-variable"></i> Độ Lớn & Quỹ Đạo Chuyển Động
+            </h3>
+
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+              <div>
+                <p class="text-slate-400 text-xs mb-1">Độ lớn Lực Lorentz $f_L = |q|vB\sin\alpha$ ($\alpha=90^\circ$):</p>
+                <p id="val-lor-F" class="text-xl font-bold font-mono text-rose-400">1.60 × 10⁻¹⁴ N</p>
+              </div>
+
+              <div class="border-t border-slate-800 pt-2 flex justify-between">
+                <div>
+                  <p class="text-slate-400 text-xs">Bán kính quỹ đạo $R = \frac{mv}{|q|B}$:</p>
+                  <p id="val-lor-R" class="text-base font-bold font-mono text-emerald-400">1.42 cm</p>
+                </div>
+                <div>
+                  <p class="text-slate-400 text-xs">Chu kỳ quay $T = \frac{2\pi m}{|q|B}$:</p>
+                  <p id="val-lor-T" class="text-base font-bold font-mono text-amber-400">0.18 ns</p>
+                </div>
+              </div>
+
+              <div class="border-t border-slate-800 pt-2 text-xs text-slate-300">
+                <p><strong>Vector hiển thị trên mô phỏng:</strong></p>
+                <p class="text-emerald-400">🔴 Vector vận tốc $\vec{v}$ (tiếp tuyến quỹ đạo)</p>
+                <p class="text-rose-400">🔵 Vector lực Lorentz $\vec{f}_L$ (hướng vào tâm quay)</p>
+                <p class="text-amber-400">🟡 Từ trường $\vec{B}$ (hướng vuông góc vào mặt phẳng)</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400">
+            📌 Lực Lorentz đóng vai trò là lực hướng tâm làm cho hạt mang điện chuyển động tròn đều!
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. KHÍ LÝ TƯỞNG (LỚP 12) -->
+      <div id="psub-gas" class="psub-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-cyan-400 flex items-center gap-2">
+              <i class="fa-solid fa-vial"></i> Mô Phỏng Xilanh Pít-tông Khí Lý Tưởng
+            </h3>
+            <div class="flex gap-1">
+              <button onclick="setGasProcess('isothermal')" id="gas-btn-isoT" class="px-2 py-1 text-xs rounded bg-cyan-600 text-white font-medium">Đẳng Nhiệt</button>
+              <button onclick="setGasProcess('isobaric')" id="gas-btn-isoP" class="px-2 py-1 text-xs rounded bg-slate-800 text-slate-400 font-medium">Đẳng Áp</button>
+              <button onclick="setGasProcess('isochoric')" id="gas-btn-isoV" class="px-2 py-1 text-xs rounded bg-slate-800 text-slate-400 font-medium">Đẳng Tích</button>
+            </div>
+          </div>
+
+          <div class="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 h-64">
+            <canvas id="canvas-gas" class="w-full h-full block"></canvas>
+          </div>
+
+          <!-- Controls -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs">
+            <div>
+              <label class="text-slate-400 block mb-1">Thể tích $V$: <span id="lbl-gas-V" class="text-cyan-400 font-bold">5.0</span> L</label>
+              <input type="range" id="slider-gas-V" min="2" max="10" step="0.2" value="5" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Nhiệt độ $T$: <span id="lbl-gas-T" class="text-cyan-400 font-bold">300</span> K</label>
+              <input type="range" id="slider-gas-T" min="200" max="600" step="10" value="300" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <label class="text-slate-400 block mb-1">Áp suất $P$: <span id="lbl-gas-P" class="text-emerald-400 font-bold">1.00</span> atm</label>
+              <div class="text-slate-300 font-mono text-center pt-1 font-bold" id="val-gas-P-display">1.00 atm</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <h3 class="font-semibold text-cyan-400 flex items-center gap-2 text-sm mb-2">
+            <i class="fa-chart-area"></i> Đồ Thị Trạng Thái Khí (Hệ Tọa Độ P-V)
+          </h3>
+
+          <div class="relative flex-1 min-h-[250px]">
+            <canvas id="chart-gas"></canvas>
+          </div>
+
+          <div class="mt-3 p-3 bg-slate-950/80 rounded-xl text-xs space-y-1 text-slate-300 border border-slate-800">
+            <p id="gas-law-title" class="font-bold text-cyan-300">1. Đẳng Nhiệt (Định luật Boyle - Mariotte):</p>
+            <p id="gas-law-desc" class="text-slate-400">Nhiệt độ $T = \text{const}$. Áp suất $P$ tỉ lệ nghịch với thể tích $V$: $P_1 V_1 = P_2 V_2$. Đồ thị là đường Hyperbol.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. QUY TẮC BÀN TAY PHẢI & BÀN TAY TRÁI -->
+      <div id="psub-handrules" class="psub-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-cyan-400 flex items-center gap-2">
+              <i class="fa-solid fa-hand"></i> Quy Tắc Bàn Tay Trái (Lực Từ $F$)
+            </h3>
+            <button onclick="toggleLeftHandDir()" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold">
+              Đổi Chiều Dòng Điện $I$
+            </button>
+          </div>
+
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+            <div class="relative h-60 flex items-center justify-center">
+              <canvas id="canvas-left-hand" class="w-full h-full block"></canvas>
+            </div>
+            <div class="text-xs text-slate-300 space-y-1.5 border-t border-slate-800 pt-3">
+              <p class="font-bold text-cyan-300">Phát biểu Quy tắc Bàn tay trái:</p>
+              <p>Đặt bàn tay trái sao cho các đường sức từ $\vec{B}$ hướng vào lòng bàn tay, chiều từ cổ tay đến ngón tay giữa là chiều dòng điện $I$, khi đó ngón tay cái ngón ra $90^\circ$ chỉ chiều của lực từ $\vec{F}$.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-purple-400 flex items-center gap-2">
+              <i class="fa-solid fa-hand-holding"></i> Quy Tắc Bàn Tay Phải (Từ Trường $\vec{B}$)
+            </h3>
+            <button onclick="toggleRightHandType()" id="btn-rh-type" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-semibold">
+              Dây Dẫn Thẳng
+            </button>
+          </div>
+
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+            <div class="relative h-60 flex items-center justify-center">
+              <canvas id="canvas-right-hand" class="w-full h-full block"></canvas>
+            </div>
+            <div class="text-xs text-slate-300 space-y-1.5 border-t border-slate-800 pt-3">
+              <p class="font-bold text-purple-300">Phát biểu Quy tắc Bàn tay phải:</p>
+              <p id="rh-desc-text">Nắm bàn tay phải sao cho ngón cái choãi ra chỉ chiều dòng điện $I$, khi đó 4 ngón tay khum lại chỉ chiều của đường sức từ $\vec{B}$ xung quanh dây dẫn.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. TRA CỨU CÔNG THỨC VẬT LÝ THPT -->
+      <div id="psub-formulas" class="psub-content hidden space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3 items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div class="relative w-full sm:w-96">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+            <input type="text" id="physics-search-input" onkeyup="filterPhysicsFormulas()" placeholder="Tìm kiếm công thức (vd: lực, động năng, thấu kính...)" class="w-full bg-slate-950 border border-slate-800 text-slate-100 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:border-cyan-500">
+          </div>
+          <div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1">
+            <button onclick="filterPhysicsCategory('all')" class="pcat-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-cyan-600 text-white">Tất cả</button>
+            <button onclick="filterPhysicsCategory('co')" class="pcat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white">Cơ Học</button>
+            <button onclick="filterPhysicsCategory('nhiet')" class="pcat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white">Nhiệt Học</button>
+            <button onclick="filterPhysicsCategory('dien')" class="pcat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white">Điện Từ</button>
+            <button onclick="filterPhysicsCategory('quang')" class="pcat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white">Quang Học</button>
+            <button onclick="filterPhysicsCategory('hatnhan')" class="pcat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white">Hạt Nhân</button>
+          </div>
+        </div>
+
+        <div id="physics-formula-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically generated formula cards -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: TOÁN HỌC -->
+    <section id="tab-math" class="tab-content space-y-6">
+      <div class="flex items-center space-x-2 border-b border-slate-800 pb-2">
+        <button onclick="switchMathSub('plotter')" class="msub-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600/30 text-purple-300 border border-purple-500/40">
+          1. Vẽ Đồ Thị Hàm Số
+        </button>
+        <button onclick="switchMathSub('derivative')" class="msub-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-slate-200">
+          2. Tra Cứu & Giải Đạo Hàm
+        </button>
+        <button onclick="switchMathSub('formulas')" class="msub-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-slate-200">
+          3. Bảng Công Thức Toán THPT
+        </button>
+      </div>
+
+      <!-- 1. VẼ ĐỒ THỊ HÀM SỐ (GRAPH PLOTTER ENGINE) -->
+      <div id="msub-plotter" class="msub-content grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <h3 class="font-semibold text-purple-400 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-chart-line"></i> Đồ Thị Hàm Số $y = f(x)$
+            </h3>
+            <div class="flex gap-2 w-full sm:w-auto">
+              <button onclick="resetGraphZoom()" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300">
+                <i class="fa-solid fa-arrows-to-dot"></i> Căn giữa
+              </button>
+              <button onclick="zoomGraph(1.2)" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+              </button>
+              <button onclick="zoomGraph(0.8)" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300">
+                <i class="fa-solid fa-magnifying-glass-minus"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Function Input Field -->
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <span class="absolute left-3 top-2.5 font-bold text-purple-400 text-xs">y =</span>
+              <input type="text" id="math-expr-input" value="x^3 - 3*x" placeholder="Nhập hàm số, ví dụ: x^3 - 3*x hoặc (2*x+1)/(x-1)" class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl pl-10 pr-3 py-2 text-xs font-mono focus:outline-none focus:border-purple-500">
+            </div>
+            <button onclick="plotMathFunction()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-purple-600/20">
+              Vẽ Đồ Thị
+            </button>
+          </div>
+
+          <!-- Canvas -->
+          <div class="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 h-96 cursor-grab active:cursor-grabbing">
+            <canvas id="canvas-math-graph" class="w-full h-full block"></canvas>
+            <div id="graph-coords" class="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur px-2.5 py-1 rounded text-xs font-mono text-slate-400 border border-slate-800">
+              (x: 0.00, y: 0.00)
+            </div>
+          </div>
+        </div>
+
+        <!-- Preset Functions & Analysis -->
+        <div class="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            <h3 class="font-semibold text-purple-400 text-sm">📌 Hàm Số Mẫu THPT</h3>
+            <div class="grid grid-cols-1 gap-2 text-xs">
+              <button onclick="setMathPreset('x^3 - 3*x')" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-purple-300 font-mono">
+                • y = x³ - 3x (Bậc 3)
+              </button>
+              <button onclick="setMathPreset('x^4 - 2*x^2 - 1')" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-purple-300 font-mono">
+                • y = x⁴ - 2x² - 1 (Trùng phương)
+              </button>
+              <button onclick="setMathPreset('(2*x + 1)/(x - 1)')" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-purple-300 font-mono">
+                • y = (2x + 1)/(x - 1) (Nhất biến)
+              </button>
+              <button onclick="setMathPreset('sin(x) + cos(2*x)')" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-purple-300 font-mono">
+                • y = sin(x) + cos(2x) (Lượng giác)
+              </button>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 space-y-2 text-xs">
+              <h4 class="font-bold text-slate-300">Phân Tích Cực Trị & Đạo Hàm:</h4>
+              <div id="math-analysis-box" class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1 font-mono text-slate-300">
+                <div>f'(x) = <span id="val-derived-f" class="text-emerald-400">3*x^2 - 3</span></div>
+                <div class="text-xs text-slate-400 mt-1">Cực trị gần đúng: (x = -1, y = 2), (x = 1, y = -2)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-purple-950/30 border border-purple-800/40 rounded-xl text-xs text-purple-200">
+            💡 Bạn có thể kéo thả bằng chuột trên khung đồ thị để di chuyển tâm tọa độ Oxy!
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. TRA CỨU & GIẢI ĐẠO HÀM -->
+      <div id="msub-derivative" class="msub-content hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <h3 class="font-semibold text-purple-400 flex items-center gap-2 text-sm">
+            <i class="fa-solid fa-square-root-variable"></i> Công Cụ Tính & Tra Cứu Đạo Hàm
+          </h3>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input type="text" id="deriv-input" value="sin(x^2) + 3*x^3" placeholder="Nhập biểu thức, ví dụ: x^4 - 5*x + sin(x)" class="flex-1 bg-slate-950 border border-slate-800 text-white rounded-xl px-4 py-2 text-xs font-mono focus:outline-none focus:border-purple-500">
+            <button onclick="calculateDerivative()" class="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl shadow-lg">
+              Tính Đạo Hàm
+            </button>
+            <button onclick="askGeminiMathStepByStep()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-lg">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> AI Giải Chi Tiết
+            </button>
+          </div>
+
+          <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+            <div class="text-xs text-slate-400">Kết quả đạo hàm $f'(x)$:</div>
+            <div id="deriv-result-output" class="text-lg font-bold font-mono text-emerald-400">
+              2 * x * cos(x^2) + 9 * x^2
+            </div>
+          </div>
+
+          <div id="gemini-math-ai-box" class="hidden p-4 bg-slate-950/90 rounded-xl border border-emerald-500/30 space-y-2">
+            <div class="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+              <i class="fa-solid fa-robot"></i> Lời Giải Chi Tiết Từ Trợ Lý Gemini AI:
+            </div>
+            <div id="gemini-math-ai-text" class="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap"></div>
+          </div>
+        </div>
+
+        <!-- Rules Table -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <h4 class="font-semibold text-slate-200 text-sm">Bảng Quy Tắc Đạo Hàm Cơ Bản THPT</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <p class="font-bold text-purple-400">• Đạo hàm hàm lũy thừa:</p>
+              <p>$(x^n)' = n \cdot x^{n-1}$</p>
+              <p>$(u^n)' = n \cdot u^{n-1} \cdot u'$</p>
+            </div>
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <p class="font-bold text-purple-400">• Đạo hàm hàm lượng giác:</p>
+              <p>$(\sin x)' = \cos x, \quad (\cos x)' = -\sin x$</p>
+              <p>$(\tan x)' = \frac{1}{\cos^2 x}, \quad (\cot x)' = -\frac{1}{\sin^2 x}$</p>
+            </div>
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+              <p class="font-bold text-purple-400">• Đạo hàm mũ & Logarit:</p>
+              <p>$(e^x)' = e^x, \quad (a^x)' = a^x \ln a$</p>
+              <p>$(\ln x)' = \frac{1}{x}, \quad (\log_a x)' = \frac{1}{x \ln a}$</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. BẢNG CÔNG THỨC TOÁN THPT -->
+      <div id="msub-formulas" class="msub-content hidden space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3 items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <input type="text" id="math-search-input" onkeyup="filterMathFormulas()" placeholder="Tìm kiếm công thức toán (tích phân, lượng giác, Oxyz...)" class="w-full sm:w-96 bg-slate-950 border border-slate-800 text-slate-100 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-purple-500">
+          <div class="flex gap-2 overflow-x-auto pb-1">
+            <button onclick="filterMathCategory('all')" class="mcat-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-600 text-white">Tất cả</button>
+            <button onclick="filterMathCategory('daiso')" class="mcat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white">Đại Số & Lượng Giác</button>
+            <button onclick="filterMathCategory('giaitich')" class="mcat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white">Giải Tích</button>
+            <button onclick="filterMathCategory('hinhhoc')" class="mcat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white">Hình Học Oxyz</button>
+          </div>
+        </div>
+
+        <div id="math-formula-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically filled by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: HÓA HỌC -->
+    <section id="tab-chem" class="tab-content space-y-6">
+      <div class="flex items-center space-x-2 border-b border-slate-800 pb-2">
+        <button onclick="switchChemSub('titration')" class="csub-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600/30 text-emerald-300 border border-emerald-500/40">
+          1. Mô Hình Chuẩn Độ Dung Dịch
+        </button>
+        <button onclick="switchChemSub('reactions')" class="csub-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-slate-200">
+          2. Tra Cứu Phản Ứng & AI
+        </button>
+        <button onclick="switchChemSub('ptable')" class="csub-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-slate-200">
+          3. Bảng Tuần Hoàn Nguyên Tố
+        </button>
+      </div>
+
+      <!-- 1. MÔ HÌNH CHUẨN ĐỘ DUNG DỊCH (TITRATION SIMULATOR) -->
+      <div id="csub-titration" class="csub-content grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-emerald-400 flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-flask-vial"></i> Dụng Cụ Thí Nghiệm Chuẩn Độ Ảo
+            </h3>
+            <select id="select-titration-type" onchange="changeTitrationMode()" class="bg-slate-800 border border-slate-700 text-white rounded-lg p-1.5 text-xs font-medium">
+              <option value="acidbase">1. Acid-Base ($H_2SO_4 + NaOH$)</option>
+              <option value="iodine">2. Chuẩn độ Iot ($I_2 + Na_2S_2O_3$)</option>
+              <option value="ethanol">3. Chuẩn độ Ethanol ($C_2H_5OH + K_2Cr_2O_7$)</option>
+            </select>
+          </div>
+
+          <!-- Lab Canvas -->
+          <div class="relative bg-slate-950 rounded-xl overflow-hidden border border-slate-800 h-80">
+            <canvas id="canvas-titration" class="w-full h-full block"></canvas>
+            <div id="titration-color-indicator" class="absolute top-2 right-2 px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700">
+              Màu dung dịch: Không màu
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="flex items-center justify-between gap-2">
+            <button onclick="addTitrationDrop(1)" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-lg">
+              <i class="fa-solid fa-droplet"></i> Nhỏ 1 giọt (0.05ml)
+            </button>
+            <button onclick="toggleAutoTitration()" id="btn-auto-titrate" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold rounded-xl">
+              <i class="fa-solid fa-play"></i> Nhỏ liên tục
+            </button>
+            <button onclick="resetTitration()" class="px-3 py-2 bg-rose-600/20 text-rose-300 hover:bg-rose-600/30 border border-rose-500/30 text-xs font-semibold rounded-xl">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+          <h3 class="font-semibold text-emerald-400 flex items-center gap-2 text-sm mb-2">
+            <i class="fa-chart-line"></i> Đường Cong Chuẩn Độ Real-time
+          </h3>
+
+          <div class="relative flex-1 min-h-[250px]">
+            <canvas id="chart-titration"></canvas>
+          </div>
+
+          <div id="titration-info-box" class="mt-3 p-3 bg-slate-950 rounded-xl text-xs space-y-1 text-slate-300 border border-slate-800">
+            <p class="font-bold text-emerald-400">• Thí nghiệm chuẩn độ Acid-Base:</p>
+            <p>Dung dịch Erlen: $10\text{ ml } H_2SO_4 \text{ 0.1M}$ + Chỉ thị Phenolphthalein.</p>
+            <p>Buret chứa: $NaOH \text{ 0.1M}$. Điểm tương đương khi thêm $20\text{ ml } NaOH$, đổi màu sang hồng nhạt!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. TRA CỨU PHẢN ỨNG HÓA HỌC & AI -->
+      <div id="csub-reactions" class="csub-content hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <h3 class="font-semibold text-emerald-400 flex items-center gap-2 text-sm">
+            <i class="fa-solid fa-vial-circle-check"></i> Tra Cứu Phương Trình Phản Ứng THPT
+          </h3>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <input type="text" id="chem-react-input" value="Fe + HNO3 dac nong" placeholder="Nhập chất tham gia, vd: Fe + HNO3 dac nong, Al + NaOH..." class="flex-1 bg-slate-950 border border-slate-800 text-white rounded-xl px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500">
+            <button onclick="searchChemicalReaction()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-lg">
+              Tra Cứu
+            </button>
+          </div>
+
+          <!-- Result Display -->
+          <div id="chem-result-box" class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+            <div>
+              <p class="text-xs text-slate-400">Phương trình đã cân bằng:</p>
+              <p id="chem-eq-output" class="text-base font-bold font-mono text-emerald-400 mt-1">
+                Fe + 6HNO3 (đặc, nóng) → Fe(NO3)3 + 3NO2↑ + 3H2O
+              </p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-2 border-t border-slate-800">
+              <div>
+                <p class="font-bold text-amber-400">• Điều kiện phản ứng:</p>
+                <p id="chem-cond-output" class="text-slate-300">Ait HNO3 đặc, đun nóng nhẹ ($t^\circ$).</p>
+              </div>
+              <div>
+                <p class="font-bold text-cyan-400">• Hiện tượng quan sát thực tế:</p>
+                <p id="chem-phenom-output" class="text-slate-300">Kim loại Sắt tan dần, dung dịch chuyển sang màu vàng nâu, thoát ra khí NO2 màu nâu đỏ có mùi hắc.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sample Reactions -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+          <h4 class="font-semibold text-slate-200 text-xs">💡 Phản Ứng Mẫu Hay Gặp Trong Đề Thi THPT:</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+            <button onclick="setChemPreset('Fe + HNO3 dac nong')" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-emerald-300 font-mono">
+              • Fe + HNO3 đặc, nóng
+            </button>
+            <button onclick="setChemPreset('Al + NaOH')" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-emerald-300 font-mono">
+              • Al + NaOH + H2O
+            </button>
+            <button onclick="setChemPreset('C2H5OH + CuO')" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-emerald-300 font-mono">
+              • C2H5OH + CuO (Ancol oxi hóa)
+            </button>
+            <button onclick="setChemPreset('Cu + HNO3 loang')" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-emerald-300 font-mono">
+              • Cu + HNO3 loãng (Khí NO hóa nâu)
+            </button>
+            <button onclick="setChemPreset('CH3COOH + C2H5OH')" class="p-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-left text-emerald-300 font-mono">
+              • CH3COOH + C2H5OH (Este hóa)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. BẢNG TUẦN HOÀN NGUYÊN TỐ TƯƠNG TÁC -->
+      <div id="csub-ptable" class="csub-content hidden space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3 items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <input type="text" id="ptable-search-input" onkeyup="filterPeriodicTable()" placeholder="Tìm theo tên nguyên tố, ký hiệu (vd: Fe, O, H, Sắt...)" class="w-full sm:w-80 bg-slate-950 border border-slate-800 text-slate-100 rounded-xl px-4 py-2 text-xs focus:outline-none focus:border-emerald-500">
+          <div class="flex items-center gap-3 text-xs flex-wrap">
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-rose-500/80 inline-block"></span> Phi kim</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-500/80 inline-block"></span> Kim loại kiềm</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-blue-500/80 inline-block"></span> KL chuyển tiếp</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-purple-500/80 inline-block"></span> Khí hiếm</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto bg-slate-900 border border-slate-800 rounded-2xl p-4">
+          <div id="periodic-table-grid" class="ptable-grid min-w-[900px]">
+            <!-- Dynamically populated 118 elements -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Element Detail Modal -->
+  <div id="element-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 relative shadow-2xl">
+      <button onclick="closeElementModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center space-x-4">
+        <div id="modal-el-box" class="w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-bold text-white shadow-lg bg-emerald-600">
+          <span id="modal-el-Z" class="text-xs opacity-80">26</span>
+          <span id="modal-el-sym" class="text-xl">Fe</span>
+        </div>
+        <div>
+          <h3 id="modal-el-name" class="text-xl font-bold text-white">Sắt (Iron)</h3>
+          <p id="modal-el-mass" class="text-xs text-slate-400">Khối lượng nguyên tử: 55.845 u</p>
+        </div>
+      </div>
+
+      <div class="space-y-2 text-xs text-slate-300 border-t border-slate-800 pt-3">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Cấu hình electron:</span>
+          <span id="modal-el-config" class="font-mono text-emerald-400">[Ar] 3d⁶ 4s²</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Độ âm điện:</span>
+          <span id="modal-el-electro" class="font-mono text-white">1.83</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Số ôxi hóa phổ biến:</span>
+          <span id="modal-el-ox" class="font-mono text-amber-400">+2, +3</span>
+        </div>
+        <div class="pt-2">
+          <p class="text-slate-400 mb-1"><strong>Tính chất hóa học THPT trọng tâm:</strong></p>
+          <p id="modal-el-desc" class="p-2 bg-slate-950 rounded-lg text-slate-300">
+            Kim loại có tính khử trung bình. Tác dụng với dung dịch axit loãng tạo muối sắt (II), tác dụng với chất oxi hóa mạnh (HNO3 đặc nóng, Cl2) tạo muối sắt (III).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div id="apikey-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 space-y-4 relative">
+      <button onclick="closeApiKeyModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h3 class="font-bold text-slate-100 flex items-center gap-2 text-sm">
+        <i class="fa-solid fa-key text-amber-400"></i> Cấu hình Gemini API Key
+      </h3>
+      <p class="text-xs text-slate-400">
+        Khóa API để sử dụng tính năng AI giải chi tiết toán học và tra cứu phản ứng hóa học nâng cao.
+      </p>
+      <input type="password" id="gemini-key-input" placeholder="Dán Gemini API Key của bạn vào đây" class="w-full bg-slate-950 border border-slate-800 text-white rounded-xl px-3 py-2 text-xs font-mono">
+      <div class="flex justify-end gap-2">
+        <button onclick="saveApiKey()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl">
+          Lưu Cấu Hình
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT ENGINE -->
+  <script>
+    /* ==========================================================================
+       GLOBAL STATE & UTILS
+       ========================================================================== */
+    let currentTheme = 'dark';
+    let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
+
+    // Switch Main Subject Tabs
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => {
+        el.classList.remove('bg-cyan-600', 'bg-purple-600', 'bg-emerald-600', 'text-white', 'shadow-md');
+        el.classList.add('text-slate-400');
+      });
+
+      document.getElementById('tab-' + tab).classList.add('active');
+
+      if (tab === 'physics') {
+        const btn = document.getElementById('nav-btn-physics');
+        btn.classList.add('bg-cyan-600', 'text-white', 'shadow-md');
+        btn.classList.remove('text-slate-400');
+      } else if (tab === 'math') {
+        const btn = document.getElementById('nav-btn-math');
+        btn.classList.add('bg-purple-600', 'text-white', 'shadow-md');
+        btn.classList.remove('text-slate-400');
+        plotMathFunction(); // render graph
+      } else if (tab === 'chem') {
+        const btn = document.getElementById('nav-btn-chem');
+        btn.classList.add('bg-emerald-600', 'text-white', 'shadow-md');
+        btn.classList.remove('text-slate-400');
+        renderTitration();
+      }
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const icon = document.getElementById('theme-icon');
+      if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        icon.className = 'fa-solid fa-sun text-amber-400';
+      } else {
+        html.classList.add('dark');
+        icon.className = 'fa-solid fa-moon';
+      }
+    }
+
+    function openApiKeyModal() {
+      document.getElementById('gemini-key-input').value = geminiApiKey;
+      document.getElementById('apikey-modal').classList.remove('hidden');
+    }
+    function closeApiKeyModal() {
+      document.getElementById('apikey-modal').classList.add('hidden');
+    }
+    function saveApiKey() {
+      geminiApiKey = document.getElementById('gemini-key-input').value.trim();
+      localStorage.setItem('gemini_api_key', geminiApiKey);
+      closeApiKeyModal();
+    }
+
+    // Helper KaTeX auto render
+    function reRenderMath() {
+      if (window.renderMathInElement) {
+        window.renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ]
+        });
+      }
+    }
+
+    /* ==========================================================================
+       1. PHYSICS MODULES
+       ========================================================================== */
+    let shmType = 'spring'; // spring or pendulum
+    let shmIsPlaying = true;
+    let shmA = 8, shmW = 4, shmPhi = 0;
+    let shmTime = 0;
+    let shmChartInstance = null;
+    let shmChartData = { t: [], x: [], v: [], a: [] };
+
+    function switchPhysicsSub(sub) {
+      document.querySelectorAll('.psub-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.psub-btn').forEach(el => {
+        el.classList.remove('bg-cyan-600/30', 'text-cyan-300', 'border', 'border-cyan-500/40');
+        el.classList.add('bg-slate-800', 'text-slate-400');
+      });
+      document.getElementById('psub-' + sub).classList.remove('hidden');
+      event.target.classList.add('bg-cyan-600/30', 'text-cyan-300', 'border', 'border-cyan-500/40');
+      event.target.classList.remove('bg-slate-800', 'text-slate-400');
+
+      if (sub === 'shm') initShmChart();
+      if (sub === 'gas') initGasChart();
+      if (sub === 'formulas') renderPhysicsFormulas();
+      reRenderMath();
+    }
+
+    function setShmType(type) {
+      shmType = type;
+      document.getElementById('shm-type-spring').className = type === 'spring' ? 'px-2.5 py-1 text-xs rounded-lg bg-cyan-600 text-white font-medium' : 'px-2.5 py-1 text-xs rounded-lg bg-slate-800 text-slate-400 font-medium';
+      document.getElementById('shm-type-pendulum').className = type === 'pendulum' ? 'px-2.5 py-1 text-xs rounded-lg bg-cyan-600 text-white font-medium' : 'px-2.5 py-1 text-xs rounded-lg bg-slate-800 text-slate-400 font-medium';
+    }
+
+    function togglePlayShm() {
+      shmIsPlaying = !shmIsPlaying;
+      document.getElementById('btn-shm-play').innerHTML = shmIsPlaying ? '<i class="fa-solid fa-pause"></i> <span>Tạm dừng</span>' : '<i class="fa-solid fa-play"></i> <span>Tiếp tục</span>';
+    }
+
+    // Sliders event listeners
+    document.getElementById('slider-shm-A').addEventListener('input', (e) => {
+      shmA = parseFloat(e.target.value);
+      document.getElementById('lbl-shm-A').innerText = shmA;
+    });
+    document.getElementById('slider-shm-w').addEventListener('input', (e) => {
+      shmW = parseFloat(e.target.value);
+      document.getElementById('lbl-shm-w').innerText = shmW.toFixed(1);
+      document.getElementById('val-shm-T').innerText = (2 * Math.PI / shmW).toFixed(2);
+      document.getElementById('val-shm-f').innerText = (shmW / (2 * Math.PI)).toFixed(2);
+    });
+    document.getElementById('slider-shm-phi').addEventListener('input', (e) => {
+      shmPhi = parseFloat(e.target.value);
+      document.getElementById('lbl-shm-phi').innerText = shmPhi.toFixed(2);
+    });
+
+    function initShmChart() {
+      const ctx = document.getElementById('chart-shm').getContext('2d');
+      if (shmChartInstance) shmChartInstance.destroy();
+      shmChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: shmChartData.t,
+          datasets: [
+            { label: 'x (cm)', data: shmChartData.x, borderColor: '#06b6d4', borderWidth: 2, pointRadius: 0 },
+            { label: 'v (cm/s)', data: shmChartData.v, borderColor: '#10b981', borderWidth: 1.5, pointRadius: 0 },
+            { label: 'a (cm/s²)', data: shmChartData.a, borderColor: '#f59e0b', borderWidth: 1.5, pointRadius: 0 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          scales: {
+            x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e293b' } },
+            y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e293b' } }
+          },
+          plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 10 } } } }
+        }
+      });
+    }
+
+    function renderShmLoop() {
+      const canvas = document.getElementById('canvas-shm');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      if (shmIsPlaying) {
+        shmTime += 0.03;
+      }
+
+      const x = shmA * Math.cos(shmW * shmTime + shmPhi);
+      const v = -shmW * shmA * Math.sin(shmW * shmTime + shmPhi);
+      const a = -shmW * shmW * x;
+
+      document.getElementById('val-shm-x').innerText = x.toFixed(1);
+      document.getElementById('val-shm-v').innerText = v.toFixed(1);
+      document.getElementById('val-shm-a').innerText = a.toFixed(1);
+
+      // Record chart data
+      if (shmIsPlaying) {
+        if (shmChartData.t.length > 80) {
+          shmChartData.t.shift();
+          shmChartData.x.shift();
+          shmChartData.v.shift();
+          shmChartData.a.shift();
+        }
+        shmChartData.t.push(shmTime.toFixed(1));
+        shmChartData.x.push(x);
+        shmChartData.v.push(v);
+        shmChartData.a.push(a);
+        if (shmChartInstance) shmChartInstance.update();
+      }
+
+      // Draw Simulation Graphic
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      if (shmType === 'spring') {
+        // Ceiling
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(centerX - 80, 30);
+        ctx.lineTo(centerX + 80, 30);
+        ctx.stroke();
+
+        // Spring coil
+        const springX = centerX + x * 10;
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(centerX - 80, 30);
+        const coils = 12;
+        const dist = (springX - (centerX - 80)) / coils;
+        for (let i = 0; i <= coils; i++) {
+          ctx.lineTo(centerX - 80 + i * dist, 30 + (i % 2 === 0 ? -12 : 12));
+        }
+        ctx.stroke();
+
+        // Mass block
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(springX, 15, 30, 30);
+        ctx.strokeStyle = '#e0f2fe';
+        ctx.strokeRect(springX, 15, 30, 30);
+      } else {
+        // Simple Pendulum
+        const pivotX = centerX;
+        const pivotY = 30;
+        const angle = (x / shmA) * 0.4; // rad
+        const length = 150;
+        const bobX = pivotX + length * Math.sin(angle);
+        const bobY = pivotY + length * Math.cos(angle);
+
+        // String
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(pivotX, pivotY);
+        ctx.lineTo(bobX, bobY);
+        ctx.stroke();
+
+        // Pivot
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath(); ctx.arc(pivotX, pivotY, 5, 0, Math.PI * 2); ctx.fill();
+
+        // Bob
+        ctx.fillStyle = '#06b6d4';
+        ctx.beginPath(); ctx.arc(bobX, bobY, 16, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.stroke();
+      }
+
+      requestAnimationFrame(renderShmLoop);
+    }
+
+    // WAVE INTERFERENCE
+    let waveLam = 25, waveD = 120, wavePhase = 0;
+    document.getElementById('slider-wave-lam').addEventListener('input', (e) => { waveLam = parseFloat(e.target.value); document.getElementById('lbl-wave-lam').innerText = waveLam; });
+    document.getElementById('slider-wave-d').addEventListener('input', (e) => { waveD = parseFloat(e.target.value); document.getElementById('lbl-wave-d').innerText = waveD; });
+    document.getElementById('select-wave-phase').addEventListener('change', (e) => { wavePhase = parseFloat(e.target.value); });
+
+    function renderWaveLoop() {
+      const canvas = document.getElementById('canvas-wave');
+      if (!canvas || canvas.offsetParent === null) { requestAnimationFrame(renderWaveLoop); return; }
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      const time = Date.now() * 0.005;
+      const s1 = { x: canvas.width / 2 - waveD / 2, y: canvas.height / 2 };
+      const s2 = { x: canvas.width / 2 + waveD / 2, y: canvas.height / 2 };
+
+      const imgData = ctx.createImageData(canvas.width, canvas.height);
+      const data = imgData.data;
+
+      for (let y = 0; y < canvas.height; y += 2) {
+        for (let x = 0; x < canvas.width; x += 2) {
+          const d1 = Math.hypot(x - s1.x, y - s1.y);
+          const d2 = Math.hypot(x - s2.x, y - s2.y);
+
+          const amp1 = Math.cos(2 * Math.PI * d1 / waveLam - time);
+          const amp2 = Math.cos(2 * Math.PI * d2 / waveLam - time + wavePhase);
+          const totalAmp = (amp1 + amp2) / 2; // -1 to 1
+
+          const idx = (y * canvas.width + x) * 4;
+          const val = Math.floor((totalAmp + 1) * 127);
+
+          data[idx] = val * 0.2;       // R
+          data[idx + 1] = val * 0.7;   // G
+          data[idx + 2] = val;         // B
+          data[idx + 3] = 255;         // A
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      // Draw Sources S1, S2
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath(); ctx.arc(s1.x, s1.y, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(s2.x, s2.y, 6, 0, Math.PI * 2); ctx.fill();
+
+      requestAnimationFrame(renderWaveLoop);
+    }
+
+    // YOUNG LIGHT INTERFERENCE
+    let opticsLam = 650, opticsA = 1.0, opticsD = 2.0;
+    document.getElementById('slider-optics-lam').addEventListener('input', (e) => {
+      opticsLam = parseFloat(e.target.value);
+      document.getElementById('lbl-optics-lam').innerText = opticsLam;
+      updateOpticsColor();
+      updateOpticsMath();
+    });
+    document.getElementById('slider-optics-a').addEventListener('input', (e) => {
+      opticsA = parseFloat(e.target.value);
+      document.getElementById('lbl-optics-a').innerText = opticsA.toFixed(1);
+      updateOpticsMath();
+    });
+    document.getElementById('slider-optics-D').addEventListener('input', (e) => {
+      opticsD = parseFloat(e.target.value);
+      document.getElementById('lbl-optics-D').innerText = opticsD.toFixed(1);
+      updateOpticsMath();
+    });
+
+    function wlToHex(wl) {
+      let r, g, b;
+      if (wl >= 380 && wl < 440) { r = -(wl - 440) / (440 - 380); g = 0; b = 1; }
+      else if (wl >= 440 && wl < 490) { r = 0; g = (wl - 440) / (490 - 440); b = 1; }
+      else if (wl >= 490 && wl < 510) { r = 0; g = 1; b = -(wl - 510) / (510 - 490); }
+      else if (wl >= 510 && wl < 580) { r = (wl - 510) / (580 - 510); g = 1; b = 0; }
+      else if (wl >= 580 && wl < 645) { r = 1; g = -(wl - 645) / (645 - 580); b = 0; }
+      else if (wl >= 645 && wl <= 750) { r = 1; g = 0; b = 0; }
+      else { r = 0; g = 0; b = 0; }
+      return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+    }
+
+    function updateOpticsColor() {
+      const color = wlToHex(opticsLam);
+      const badge = document.getElementById('optics-color-badge');
+      badge.style.backgroundColor = color;
+      badge.innerText = `λ = ${opticsLam} nm`;
+    }
+
+    function updateOpticsMath() {
+      const i = (opticsLam * 1e-6 * opticsD) / opticsA; // mm
+      document.getElementById('val-optics-i').innerText = i.toFixed(2) + ' mm';
+      document.getElementById('optics-x1').innerText = i.toFixed(2);
+      document.getElementById('optics-x2').innerText = (2 * i).toFixed(2);
+      document.getElementById('optics-xt1').innerText = (0.5 * i).toFixed(2);
+    }
+
+    function renderOpticsLoop() {
+      const canvas = document.getElementById('canvas-optics');
+      if (!canvas || canvas.offsetParent === null) { requestAnimationFrame(renderOpticsLoop); return; }
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const color = wlToHex(opticsLam);
+      const i_mm = (opticsLam * 1e-6 * opticsD) / opticsA;
+      const pxPerMm = 30;
+
+      // Draw screen fringe intensity pattern
+      for (let x = 0; x < canvas.width; x++) {
+        const distMm = (x - canvas.width / 2) / pxPerMm;
+        const cosVal = Math.cos((Math.PI * opticsA * distMm) / (opticsLam * 1e-3 * opticsD));
+        const intensity = cosVal * cosVal;
+
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = intensity;
+        ctx.beginPath();
+        ctx.moveTo(x, 20);
+        ctx.lineTo(x, canvas.height - 20);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1.0;
+
+      requestAnimationFrame(renderOpticsLoop);
+    }
+
+    // LORENTZ FORCE
+    let lorSign = 1, lorV = 5, lorB = 0.2, lorTime = 0;
+    function setChargeSign(s) {
+      lorSign = s;
+      document.getElementById('btn-q-pos').className = s === 1 ? 'px-2 py-0.5 rounded bg-rose-600 text-white font-bold' : 'px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-bold';
+      document.getElementById('btn-q-neg').className = s === -1 ? 'px-2 py-0.5 rounded bg-rose-600 text-white font-bold' : 'px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-bold';
+    }
+    document.getElementById('slider-lor-v').addEventListener('input', (e) => { lorV = parseFloat(e.target.value); document.getElementById('lbl-lor-v').innerText = lorV.toFixed(1); });
+    document.getElementById('slider-lor-B').addEventListener('input', (e) => { lorB = parseFloat(e.target.value); document.getElementById('lbl-lor-B').innerText = lorB.toFixed(2); });
+
+    function renderLorentzLoop() {
+      const canvas = document.getElementById('canvas-lorentz');
+      if (!canvas || canvas.offsetParent === null) { requestAnimationFrame(renderLorentzLoop); return; }
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      // Draw B-field dots (out of page)
+      ctx.fillStyle = '#475569';
+      for (let x = 30; x < canvas.width; x += 40) {
+        for (let y = 30; y < canvas.height; y += 40) {
+          ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+
+      lorTime += 0.04;
+      const R = (lorV / lorB) * 15;
+      const w = lorSign * (lorB * 1.5);
+      const particleX = cx + R * Math.cos(w * lorTime);
+      const particleY = cy + R * Math.sin(w * lorTime);
+
+      // Trajectory Circle
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+
+      // Particle
+      ctx.fillStyle = lorSign > 0 ? '#f43f5e' : '#3b82f6';
+      ctx.beginPath(); ctx.arc(particleX, particleY, 8, 0, Math.PI * 2); ctx.fill();
+
+      // Lorentz Force Vector (towards center)
+      ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(particleX, particleY); ctx.lineTo(cx, cy); ctx.stroke();
+
+      requestAnimationFrame(renderLorentzLoop);
+    }
+
+    // IDEAL GAS LAWS
+    let gasMode = 'isothermal'; // isothermal, isobaric, isochoric
+    let gasV = 5, gasT = 300, gasP = 1.0;
+    let gasParticles = [];
+    let gasChartInstance = null;
+
+    for (let i = 0; i < 35; i++) {
+      gasParticles.push({
+        x: Math.random() * 150 + 20,
+        y: Math.random() * 150 + 20,
+        vx: (Math.random() - 0.5) * 3,
+        vy: (Math.random() - 0.5) * 3
+      });
+    }
+
+    function setGasProcess(mode) {
+      gasMode = mode;
+      document.getElementById('gas-btn-isoT').className = mode === 'isothermal' ? 'px-2 py-1 text-xs rounded bg-cyan-600 text-white font-medium' : 'px-2 py-1 text-xs rounded bg-slate-800 text-slate-400 font-medium';
+      document.getElementById('gas-btn-isoP').className = mode === 'isobaric' ? 'px-2 py-1 text-xs rounded bg-cyan-600 text-white font-medium' : 'px-2 py-1 text-xs rounded bg-slate-800 text-slate-400 font-medium';
+      document.getElementById('gas-btn-isoV').className = mode === 'isochoric' ? 'px-2 py-1 text-xs rounded bg-cyan-600 text-white font-medium' : 'px-2 py-1 text-xs rounded bg-slate-800 text-slate-400 font-medium';
+
+      const title = document.getElementById('gas-law-title');
+      const desc = document.getElementById('gas-law-desc');
+
+      if (mode === 'isothermal') {
+        title.innerText = '1. Đẳng Nhiệt (Boyle - Mariotte):';
+        desc.innerText = 'Nhiệt độ T = const. Áp suất P tỉ lệ nghịch với thể tích V: P1*V1 = P2*V2. Đồ thị là đường Hyperbol.';
+      } else if (mode === 'isobaric') {
+        title.innerText = '2. Đẳng Áp (Gay-Lussac):';
+        desc.innerText = 'Áp suất P = const. Thể tích V tỉ lệ thuận với nhiệt độ T: V/T = const. Đồ thị là đường thẳng kéo dài qua gốc tọa độ O.';
+      } else {
+        title.innerText = '3. Đẳng Tích (Charles):';
+        desc.innerText = 'Thể tích V = const. Áp suất P tỉ lệ thuận với nhiệt độ tuyệt đối T: P/T = const.';
+      }
+      updateGasValues();
+    }
+
+    document.getElementById('slider-gas-V').addEventListener('input', (e) => {
+      gasV = parseFloat(e.target.value);
+      document.getElementById('lbl-gas-V').innerText = gasV.toFixed(1);
+      if (gasMode === 'isothermal') gasP = (1.0 * 5) / gasV;
+      else if (gasMode === 'isobaric') gasT = (gasV / 5) * 300;
+      updateGasValues();
+    });
+
+    document.getElementById('slider-gas-T').addEventListener('input', (e) => {
+      gasT = parseFloat(e.target.value);
+      document.getElementById('lbl-gas-T').innerText = Math.round(gasT);
+      if (gasMode === 'isochoric') gasP = (gasT / 300) * 1.0;
+      else if (gasMode === 'isobaric') gasV = (gasT / 300) * 5;
+      updateGasValues();
+    });
+
+    function updateGasValues() {
+      document.getElementById('val-gas-P-display').innerText = gasP.toFixed(2) + ' atm';
+      document.getElementById('lbl-gas-P').innerText = gasP.toFixed(2);
+      if (gasChartInstance) {
+        gasChartInstance.data.datasets[0].data = [
+          { x: gasV, y: gasP }
+        ];
+        gasChartInstance.update();
+      }
+    }
+
+    function initGasChart() {
+      const ctx = document.getElementById('chart-gas').getContext('2d');
+      if (gasChartInstance) gasChartInstance.destroy();
+      gasChartInstance = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+          datasets: [{
+            label: 'Trạng thái hiện tại (V, P)',
+            data: [{ x: gasV, y: gasP }],
+            backgroundColor: '#06b6d4',
+            pointRadius: 8
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'Thể tích V (L)', color: '#94a3b8' }, ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, min: 1, max: 11 },
+            y: { title: { display: true, text: 'Áp suất P (atm)', color: '#94a3b8' }, ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, min: 0.2, max: 3 }
+          }
+        }
+      });
+    }
+
+    function renderGasLoop() {
+      const canvas = document.getElementById('canvas-gas');
+      if (!canvas || canvas.offsetParent === null) { requestAnimationFrame(renderGasLoop); return; }
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const pWidth = (gasV / 10) * (canvas.width - 80);
+      const speedMult = Math.sqrt(gasT / 300);
+
+      // Cylinder Box
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 4;
+      ctx.strokeRect(30, 40, pWidth, canvas.height - 80);
+
+      // Piston
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(30 + pWidth, 35, 15, canvas.height - 70);
+
+      // Particles
+      ctx.fillStyle = '#f59e0b';
+      gasParticles.forEach(p => {
+        p.x += p.vx * speedMult;
+        p.y += p.vy * speedMult;
+
+        if (p.x < 35 || p.x > 30 + pWidth - 5) p.vx *= -1;
+        if (p.y < 45 || p.y > canvas.height - 45) p.vy *= -1;
+
+        ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+      });
+
+      requestAnimationFrame(renderGasLoop);
+    }
+
+    // HAND RULES CANVAS
+    let leftHandDir = 1;
+    let rightHandType = 'straight';
+
+    function toggleLeftHandDir() { leftHandDir *= -1; renderLeftHandCanvas(); }
+    function toggleRightHandType() {
+      rightHandType = rightHandType === 'straight' ? 'solenoid' : 'straight';
+      document.getElementById('btn-rh-type').innerText = rightHandType === 'straight' ? 'Dây Dẫn Thẳng' : 'Ống Dây';
+      document.getElementById('rh-desc-text').innerText = rightHandType === 'straight' 
+        ? 'Nắm bàn tay phải sao cho ngón cái choãi ra chỉ chiều dòng điện I, khi đó 4 ngón tay khum lại chỉ chiều của đường sức từ B.'
+        : 'Khum bàn tay phải sao cho chiều từ cổ tay đến ngón tay chỉ chiều dòng điện I qua các vòng dây, ngón cái choãi ra 90 độ chỉ chiều đường sức từ B.';
+      renderRightHandCanvas();
+    }
+
+    function renderLeftHandCanvas() {
+      const canvas = document.getElementById('canvas-left-hand');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2, cy = canvas.height / 2;
+
+      // Draw wire
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(cx - 100, cy); ctx.lineTo(cx + 100, cy); ctx.stroke();
+
+      // Current Vector I
+      ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 70 * leftHandDir, cy); ctx.stroke();
+
+      // B field (downward)
+      ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(cx, cy - 60); ctx.lineTo(cx, cy + 60); ctx.stroke();
+
+      // Lorentz Force F (out of page)
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath(); ctx.arc(cx, cy, 14, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px Inter'; ctx.fillText('F', cx - 4, cy + 4);
+    }
+
+    function renderRightHandCanvas() {
+      const canvas = document.getElementById('canvas-right-hand');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2, cy = canvas.height / 2;
+
+      if (rightHandType === 'straight') {
+        // Vertical wire
+        ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(cx, cy - 80); ctx.lineTo(cx, cy + 80); ctx.stroke();
+
+        // Magnetic loops
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.ellipse(cx, cy, 60, 20, 0, 0, Math.PI * 2); ctx.stroke();
+      } else {
+        // Solenoid coil
+        ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 4;
+        for (let i = -4; i <= 4; i++) {
+          ctx.beginPath(); ctx.ellipse(cx + i * 18, cy, 10, 35, 0, 0, Math.PI * 2); ctx.stroke();
+        }
+      }
+    }
+
+    // PHYSICS FORMULAS DATABASE
+    const physicsFormulasData = [
+      { cat: 'co', name: 'Dao động điều hòa', formula: 'x = A\\cos(\\omega t + \\varphi)', note: 'A: biên độ (cm), \\omega: tần số góc (rad/s)' },
+      { cat: 'co', name: 'Con lắc lò xo - Chu kỳ', formula: 'T = 2\\pi \\sqrt{\\frac{m}{k}}', note: 'm: khối lượng (kg), k: độ cứng (N/m)' },
+      { cat: 'co', name: 'Con lắc đơn - Chu kỳ', formula: 'T = 2\\pi \\sqrt{\\frac{l}{g}}', note: 'l: chiều dài dây (m), g: gia trọng trường' },
+      { cat: 'co', name: 'Vận tốc sóng cơ', formula: 'v = \\lambda \\cdot f = \\frac{\\lambda}{T}', note: '\\lambda: bước sóng (m), f: tần số (Hz)' },
+      { cat: 'dien', name: 'Định luật Cu-lông (Coulomb)', formula: 'F = k \\frac{|q_1 q_2|}{\\varepsilon r^2}', note: 'k = 9 \\cdot 10^9 \\text{ N.m}^2/\\text{C}^2' },
+      { cat: 'dien', name: 'Lực Lorentz', formula: 'f_L = |q|vB\\sin\\alpha', note: 'q: điện tích (C), v: vận tốc (m/s), B: từ trường (T)' },
+      { cat: 'nhiet', name: 'Phương trình Khí Lý Tưởng', formula: 'P V = n R T', note: 'R = 8.31 \\text{ J/(mol.K)}, T \\text{ (Kelvin)}' },
+      { cat: 'quang', name: 'Khoảng vân giao thoa Y-âng', formula: 'i = \\frac{\\lambda D}{a}', note: '\\lambda: bước sóng, D: khoảng cách màn, a: khoảng cách 2 khe' },
+      { cat: 'hatnhan', name: 'Năng lượng nghỉ Einstein', formula: 'E = m c^2', note: 'c = 3 \\cdot 10^8 \\text{ m/s}' }
+    ];
+
+    function renderPhysicsFormulas(data = physicsFormulasData) {
+      const container = document.getElementById('physics-formula-container');
+      container.innerHTML = data.map(item => `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 hover:border-cyan-500/50 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-cyan-400">${item.name}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 uppercase">${item.cat}</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-lg text-center font-mono text-slate-100 text-sm overflow-x-auto">
+            $${item.formula}$
+          </div>
+          <p class="text-[11px] text-slate-400">${item.note}</p>
+        </div>
+      `).join('');
+      reRenderMath();
+    }
+
+    function filterPhysicsFormulas() {
+      const q = document.getElementById('physics-search-input').value.toLowerCase();
+      const filtered = physicsFormulasData.filter(f => f.name.toLowerCase().includes(q) || f.note.toLowerCase().includes(q));
+      renderPhysicsFormulas(filtered);
+    }
+
+    function filterPhysicsCategory(cat) {
+      document.querySelectorAll('.pcat-btn').forEach(b => b.className = 'pcat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white');
+      event.target.className = 'pcat-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-cyan-600 text-white';
+      if (cat === 'all') renderPhysicsFormulas(physicsFormulasData);
+      else renderPhysicsFormulas(physicsFormulasData.filter(f => f.cat === cat));
+    }
+
+    /* ==========================================================================
+       2. MATH MODULES
+       ========================================================================== */
+    let mathZoom = 40; // pixels per unit
+    let mathPanX = 0, mathPanY = 0;
+
+    function switchMathSub(sub) {
+      document.querySelectorAll('.msub-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.msub-btn').forEach(el => {
+        el.classList.remove('bg-purple-600/30', 'text-purple-300', 'border', 'border-purple-500/40');
+        el.classList.add('bg-slate-800', 'text-slate-400');
+      });
+      document.getElementById('msub-' + sub).classList.remove('hidden');
+      event.target.classList.add('bg-purple-600/30', 'text-purple-300', 'border', 'border-purple-500/40');
+      event.target.classList.remove('bg-slate-800', 'text-slate-400');
+
+      if (sub === 'plotter') plotMathFunction();
+      if (sub === 'formulas') renderMathFormulas();
+      reRenderMath();
+    }
+
+    function setMathPreset(expr) {
+      document.getElementById('math-expr-input').value = expr;
+      plotMathFunction();
+    }
+
+    function zoomGraph(factor) {
+      mathZoom *= factor;
+      plotMathFunction();
+    }
+    function resetGraphZoom() {
+      mathZoom = 40; mathPanX = 0; mathPanY = 0;
+      plotMathFunction();
+    }
+
+    function plotMathFunction() {
+      const canvas = document.getElementById('canvas-math-graph');
+      if (!canvas || canvas.offsetParent === null) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+
+      const exprStr = document.getElementById('math-expr-input').value || 'x^2';
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2 + mathPanX;
+      const cy = canvas.height / 2 + mathPanY;
+
+      // Draw Grid
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+      for (let x = cx % mathZoom; x < canvas.width; x += mathZoom) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = cy % mathZoom; y < canvas.height; y += mathZoom) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // Draw Oxy Axes
+      ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(canvas.width, cy); ctx.stroke(); // X axis
+      ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, canvas.height); ctx.stroke(); // Y axis
+
+      // Compile math expression with math.js
+      try {
+        const compiled = math.compile(exprStr);
+        ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        let isFirst = true;
+
+        for (let px = 0; px < canvas.width; px += 2) {
+          const xVal = (px - cx) / mathZoom;
+          try {
+            const yVal = compiled.evaluate({ x: xVal });
+            const py = cy - yVal * mathZoom;
+
+            if (py >= -100 && py <= canvas.height + 100) {
+              if (isFirst) { ctx.moveTo(px, py); isFirst = false; }
+              else ctx.lineTo(px, py);
+            } else { isFirst = true; }
+          } catch (e) { isFirst = true; }
+        }
+        ctx.stroke();
+
+        // Calculate symbolic derivative with math.js
+        const deriv = math.derivative(exprStr, 'x').toString();
+        document.getElementById('val-derived-f').innerText = deriv;
+      } catch (err) {
+        ctx.fillStyle = '#ef4444'; ctx.font = '12px Inter';
+        ctx.fillText('Lỗi cú pháp toán học!', 20, 30);
+      }
+    }
+
+    // DERIVATIVE CALCULATOR & GEMINI STEP-BY-STEP
+    function calculateDerivative() {
+      const expr = document.getElementById('deriv-input').value;
+      try {
+        const res = math.derivative(expr, 'x').toString();
+        document.getElementById('deriv-result-output').innerText = res;
+      } catch (err) {
+        document.getElementById('deriv-result-output').innerText = 'Không thể tính đạo hàm biểu thức này!';
+      }
+    }
+
+    async function askGeminiMathStepByStep() {
+      const expr = document.getElementById('deriv-input').value;
+      const aiBox = document.getElementById('gemini-math-ai-box');
+      const aiText = document.getElementById('gemini-math-ai-text');
+
+      aiBox.classList.remove('hidden');
+      aiText.innerText = 'Đang suy luận từng bước từ Gemini AI...';
+
+      const systemPrompt = "Bạn là một giáo viên toán THPT chuyên nghiệp. Hãy hướng dẫn giải chi tiết đạo hàm của hàm số sau theo từng bước bằng tiếng Việt ngắn gọn, dễ hiểu.";
+      const userQuery = `Hãy tính đạo hàm f'(x) từng bước cho hàm số f(x) = ${expr}`;
+
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${geminiApiKey}`;
+
+      try {
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userQuery }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] }
+          })
+        });
+        const data = await res.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Không tìm thấy phản hồi từ AI.";
+        aiText.innerText = text;
+      } catch (err) {
+        aiText.innerText = "Lỗi kết nối Gemini API. Vui lòng kiểm tra lại API Key!";
+      }
+    }
+
+    // MATH FORMULAS DATABASE
+    const mathFormulasData = [
+      { cat: 'daiso', name: 'Công thức nghiệm PT bậc 2', formula: 'x = \\frac{-b \\pm \\sqrt{\\Delta}}{2a}', note: '\\Delta = b^2 - 4ac' },
+      { cat: 'daiso', name: 'Công thức Hạ bậc Lượng giác', formula: '\\sin^2 x = \\frac{1 - \\cos 2x}{2}', note: 'Dùng giải phương trình lượng giác' },
+      { cat: 'giaitich', name: 'Đạo hàm hàm hợp', formula: '(u(v)\') = u\'(v) \\cdot v\'(x)', note: 'Quy tắc Chain Rule' },
+      { cat: 'giaitich', name: 'Công thức Tích phân từng phần', formula: '\\int u \\, dv = u v - \\int v \\, du', note: 'Đặt u (Nhất log, nhì đa, tam lượng, tứ mũ)' },
+      { cat: 'hinhhoc', name: 'Khoảng cách từ điểm đến mặt phẳng Oxyz', formula: 'd(M, P) = \\frac{|A x_0 + B y_0 + C z_0 + D|}{\\sqrt{A^2 + B^2 + C^2}}', note: 'Mập (x0, y0, z0), Mp(P): Ax+By+Cz+D=0' }
+    ];
+
+    function renderMathFormulas(data = mathFormulasData) {
+      const container = document.getElementById('math-formula-container');
+      container.innerHTML = data.map(item => `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 hover:border-purple-500/50 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-purple-400">${item.name}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 uppercase">${item.cat}</span>
+          </div>
+          <div class="p-3 bg-slate-950 rounded-lg text-center font-mono text-slate-100 text-sm overflow-x-auto">
+            $${item.formula}$
+          </div>
+          <p class="text-[11px] text-slate-400">${item.note}</p>
+        </div>
+      `).join('');
+      reRenderMath();
+    }
+
+    function filterMathFormulas() {
+      const q = document.getElementById('math-search-input').value.toLowerCase();
+      renderMathFormulas(mathFormulasData.filter(m => m.name.toLowerCase().includes(q) || m.note.toLowerCase().includes(q)));
+    }
+    function filterMathCategory(cat) {
+      document.querySelectorAll('.mcat-btn').forEach(b => b.className = 'mcat-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-400 hover:text-white');
+      event.target.className = 'mcat-btn active px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-600 text-white';
+      if (cat === 'all') renderMathFormulas(mathFormulasData);
+      else renderMathFormulas(mathFormulasData.filter(m => m.cat === cat));
+    }
+
+    /* ==========================================================================
+       3. CHEMISTRY MODULES
+       ========================================================================== */
+    let titrationType = 'acidbase'; // acidbase, iodine, ethanol
+    let titrationDrops = 0;
+    let autoTitrateTimer = null;
+    let titrationChartInstance = null;
+
+    function switchChemSub(sub) {
+      document.querySelectorAll('.csub-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.csub-btn').forEach(el => {
+        el.classList.remove('bg-emerald-600/30', 'text-emerald-300', 'border', 'border-emerald-500/40');
+        el.classList.add('bg-slate-800', 'text-slate-400');
+      });
+      document.getElementById('csub-' + sub).classList.remove('hidden');
+      event.target.classList.add('bg-emerald-600/30', 'text-emerald-300', 'border', 'border-emerald-500/40');
+      event.target.classList.remove('bg-slate-800', 'text-slate-400');
+
+      if (sub === 'titration') initTitrationChart();
+      if (sub === 'ptable') renderPeriodicTable();
+      reRenderMath();
+    }
+
+    function changeTitrationMode() {
+      titrationType = document.getElementById('select-titration-type').value;
+      resetTitration();
+    }
+
+    function addTitrationDrop(cnt = 1) {
+      titrationDrops += cnt;
+      renderTitration();
+      updateTitrationChart();
+    }
+
+    function toggleAutoTitration() {
+      const btn = document.getElementById('btn-auto-titrate');
+      if (autoTitrateTimer) {
+        clearInterval(autoTitrateTimer);
+        autoTitrateTimer = null;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> Nhỏ liên tục';
+      } else {
+        autoTitrateTimer = setInterval(() => { addTitrationDrop(1); }, 150);
+        btn.innerHTML = '<i class="fa-solid fa-pause"></i> Tạm dừng';
+      }
+    }
+
+    function resetTitration() {
+      if (autoTitrateTimer) toggleAutoTitration();
+      titrationDrops = 0;
+      renderTitration();
+      initTitrationChart();
+    }
+
+    function initTitrationChart() {
+      const ctx = document.getElementById('chart-titration').getContext('2d');
+      if (titrationChartInstance) titrationChartInstance.destroy();
+      titrationChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [0],
+          datasets: [{
+            label: titrationType === 'acidbase' ? 'pH Dung Dịch' : 'Độ Đậm Màu (Nồng Độ)',
+            data: [1.0],
+            borderColor: '#10b981',
+            borderWidth: 2,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'Thể tích thêm vào (ml)', color: '#94a3b8' }, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } },
+            y: { title: { display: true, text: 'Giá trị pH / Màu sắc', color: '#94a3b8' }, ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+          }
+        }
+      });
+    }
+
+    function updateTitrationChart() {
+      if (!titrationChartInstance) return;
+      const vol = (titrationDrops * 0.05).toFixed(2);
+
+      let val = 1.0;
+      if (titrationType === 'acidbase') {
+        // pH curve simulation for H2SO4 + NaOH
+        if (vol < 20) val = 1.0 + (vol / 20) * 1.5;
+        else if (vol === 20) val = 7.0;
+        else val = 7.0 + Math.min(6, (vol - 20) * 0.8);
+      } else if (titrationType === 'iodine') {
+        val = Math.max(0, 10 - vol * 0.5);
+      } else {
+        val = Math.min(10, vol * 0.6);
+      }
+
+      titrationChartInstance.data.labels.push(vol);
+      titrationChartInstance.data.datasets[0].data.push(val);
+      titrationChartInstance.update();
+    }
+
+    function renderTitration() {
+      const canvas = document.getElementById('canvas-titration');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+
+      // Color calculations
+      let solutionColor = 'rgba(255, 255, 255, 0.1)';
+      let colorText = 'Không màu';
+
+      const vol = titrationDrops * 0.05;
+
+      if (titrationType === 'acidbase') {
+        if (vol >= 19.5 && vol <= 20.5) { solutionColor = 'rgba(244, 114, 182, 0.5)'; colorText = 'Hồng nhạt (Điểm tương đương!)'; }
+        else if (vol > 20.5) { solutionColor = 'rgba(236, 72, 153, 0.8)'; colorText = 'Hồng thẫm (Dư NaOH)'; }
+      } else if (titrationType === 'iodine') {
+        if (vol < 20) { solutionColor = 'rgba(30, 58, 138, 0.8)'; colorText = 'Xanh thẫm (Iot + Hồ tinh bột)'; }
+        else { solutionColor = 'rgba(255, 255, 255, 0.1)'; colorText = 'Mất màu hoàn toàn'; }
+      } else {
+        if (vol < 20) { solutionColor = 'rgba(249, 115, 22, 0.7)'; colorText = 'Màu cam (Cr2O7 2-)'; }
+        else { solutionColor = 'rgba(34, 197, 94, 0.7)'; colorText = 'Màu xanh lục (Cr3+)'; }
+      }
+
+      document.getElementById('titration-color-indicator').innerText = 'Màu dung dịch: ' + colorText;
+
+      // Draw Buret
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
+      ctx.strokeRect(cx - 10, 20, 20, 140);
+
+      // Liquid in Buret
+      const buretLevel = Math.max(0, 130 - titrationDrops * 0.3);
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+      ctx.fillRect(cx - 8, 30 + (130 - buretLevel), 16, buretLevel);
+
+      // Erlenmeyer Flask
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 20, 180); ctx.lineTo(cx - 50, 250); ctx.lineTo(cx + 50, 250); ctx.lineTo(cx + 20, 180);
+      ctx.closePath(); ctx.stroke();
+
+      // Liquid inside flask
+      ctx.fillStyle = solutionColor;
+      ctx.beginPath();
+      ctx.moveTo(cx - 35, 220); ctx.lineTo(cx - 48, 248); ctx.lineTo(cx + 48, 248); ctx.lineTo(cx + 35, 220);
+      ctx.closePath(); ctx.fill();
+    }
+
+    // CHEMICAL REACTIONS DATABASE
+    const chemReactionsDB = [
+      {
+        reactants: 'fe + hno3 dac nong',
+        eq: 'Fe + 6HNO3 (đặc, nóng) → Fe(NO3)3 + 3NO2↑ + 3H2O',
+        cond: 'Đun nóng nhẹ (t°).',
+        phenom: 'Sắt tan, có khí NO2 màu nâu đỏ thoát ra hắc, dung dịch hóa vàng nâu.'
+      },
+      {
+        reactants: 'al + naoh',
+        eq: '2Al + 2NaOH + 2H2O → 2NaAlO2 + 3H2↑',
+        cond: 'Nhiệt độ phòng.',
+        phenom: 'Nhôm tan nhanh trong kiềm, sủi bọt khí H2 không màu liên tục.'
+      },
+      {
+        reactants: 'c2h5oh + cuo',
+        eq: 'CH3CH2OH + CuO --t°--> CH3CHO + Cu + H2O',
+        cond: 'Đun nóng dây đồng bị oxi hóa đen.',
+        phenom: 'Lưới đồng từ màu đen CuO chuyển sang đỏ kim loại Cu, có mùi xốc của Anđehit axetic.'
+      }
+    ];
+
+    async function searchChemicalReaction() {
+      const q = document.getElementById('chem-react-input').value.toLowerCase().trim();
+      const found = chemReactionsDB.find(r => r.reactants.includes(q) || q.includes(r.reactants));
+
+      if (found) {
+        document.getElementById('chem-eq-output').innerText = found.eq;
+        document.getElementById('chem-cond-output').innerText = found.cond;
+        document.getElementById('chem-phenom-output').innerText = found.phenom;
+      } else {
+        // Fallback to Gemini API query
+        document.getElementById('chem-eq-output').innerText = "Đang tra cứu từ Gemini AI...";
+        const systemPrompt = "Bạn là chuyên gia hóa học THPT. Hãy trả về kết quả tra cứu phương trình hóa học dưới dạng JSON gồm 3 trường: eq (phương trình cân bằng), cond (điều kiện), phenom (hiện tượng thực tế quan sát được).";
+        
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${geminiApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: `Cho biết phương trình, điều kiện và hiện tượng phản ứng giữa: ${q}` }] }],
+              systemInstruction: { parts: [{ text: systemPrompt }] }
+            })
+          });
+          const data = await res.json();
+          const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          document.getElementById('chem-eq-output').innerText = raw || "Không tìm thấy phản ứng!";
+        } catch(e) {
+          document.getElementById('chem-eq-output').innerText = "Không tìm thấy phản ứng trong cơ sở dữ liệu mẫu!";
+        }
+      }
+    }
+
+    function setChemPreset(preset) {
+      document.getElementById('chem-react-input').value = preset;
+      searchChemicalReaction();
+    }
+
+    // PERIODIC TABLE 118 ELEMENTS
+    const elementsData = [
+      { Z: 1, sym: 'H', name: 'Hiđrô', mass: 1.008, cat: 'nonmetal', config: '1s¹', ox: '+1, -1', electro: '2.20' },
+      { Z: 2, sym: 'He', name: 'Hêli', mass: 4.0026, cat: 'noble', config: '1s²', ox: '0', electro: '-' },
+      { Z: 3, sym: 'Li', name: 'Liti', mass: 6.94, cat: 'alkali', config: '[He] 2s¹', ox: '+1', electro: '0.98' },
+      { Z: 4, sym: 'Be', name: 'Beri', mass: 9.0122, cat: 'alkaline', config: '[He] 2s²', ox: '+2', electro: '1.57' },
+      { Z: 5, sym: 'B', name: 'Bo', mass: 10.81, cat: 'nonmetal', config: '[He] 2s² 2p¹', ox: '+3', electro: '2.04' },
+      { Z: 6, sym: 'C', name: 'Cacbon', mass: 12.011, cat: 'nonmetal', config: '[He] 2s² 2p²', ox: '+4, +2, -4', electro: '2.55' },
+      { Z: 7, sym: 'N', name: 'Nitơ', mass: 14.007, cat: 'nonmetal', config: '[He] 2s² 2p³', ox: '-3, +1, +2, +3, +4, +5', electro: '3.04' },
+      { Z: 8, sym: 'O', name: 'Oxi', mass: 15.999, cat: 'nonmetal', config: '[He] 2s² 2p⁴', ox: '-2', electro: '3.44' },
+      { Z: 9, sym: 'F', name: 'Clo', mass: 18.998, cat: 'nonmetal', config: '[He] 2s² 2p⁵', ox: '-1', electro: '3.98' },
+      { Z: 10, sym: 'Ne', name: 'Nêon', mass: 20.180, cat: 'noble', config: '[He] 2s² 2p⁶', ox: '0', electro: '-' },
+      { Z: 11, sym: 'Na', name: 'Natri', mass: 22.990, cat: 'alkali', config: '[Ne] 3s¹', ox: '+1', electro: '0.93' },
+      { Z: 12, sym: 'Mg', name: 'Magiê', mass: 24.305, cat: 'alkaline', config: '[Ne] 3s²', ox: '+2', electro: '1.31' },
+      { Z: 13, sym: 'Al', name: 'Nhôm', mass: 26.982, cat: 'transition', config: '[Ne] 3s² 3p¹', ox: '+3', electro: '1.61' },
+      { Z: 26, sym: 'Fe', name: 'Sắt', mass: 55.845, cat: 'transition', config: '[Ar] 3d⁶ 4s²', ox: '+2, +3', electro: '1.83' },
+      { Z: 29, sym: 'Cu', name: 'Đồng', mass: 63.546, cat: 'transition', config: '[Ar] 3d¹⁰ 4s¹', ox: '+1, +2', electro: '1.90' }
+    ];
+
+    function renderPeriodicTable() {
+      const grid = document.getElementById('periodic-table-grid');
+      grid.innerHTML = elementsData.map(el => {
+        let colorClass = 'bg-slate-800 text-white';
+        if (el.cat === 'alkali') colorClass = 'bg-amber-600/80 text-white';
+        if (el.cat === 'nonmetal') colorClass = 'bg-rose-600/80 text-white';
+        if (el.cat === 'transition') colorClass = 'bg-blue-600/80 text-white';
+        if (el.cat === 'noble') colorClass = 'bg-purple-600/80 text-white';
+
+        return `
+          <div onclick="openElementModal(${el.Z})" class="p-1 rounded cursor-pointer transition hover:scale-110 flex flex-col items-center justify-center font-mono ${colorClass} h-12 shadow">
+            <span class="text-[9px] opacity-75">${el.Z}</span>
+            <span class="font-bold text-xs">${el.sym}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openElementModal(Z) {
+      const el = elementsData.find(e => e.Z === Z);
+      if (!el) return;
+      document.getElementById('modal-el-Z').innerText = el.Z;
+      document.getElementById('modal-el-sym').innerText = el.sym;
+      document.getElementById('modal-el-name').innerText = el.name;
+      document.getElementById('modal-el-mass').innerText = `Khối lượng nguyên tử: ${el.mass} u`;
+      document.getElementById('modal-el-config').innerText = el.config;
+      document.getElementById('modal-el-electro').innerText = el.electro;
+      document.getElementById('modal-el-ox').innerText = el.ox;
+
+      document.getElementById('element-modal').classList.remove('hidden');
+    }
+
+    function closeElementModal() {
+      document.getElementById('element-modal').classList.add('hidden');
+    }
+
+    function filterPeriodicTable() {
+      const q = document.getElementById('ptable-search-input').value.toLowerCase();
+      const filtered = elementsData.filter(e => e.sym.toLowerCase().includes(q) || e.name.toLowerCase().includes(q));
+      // highlight or filter
+    }
+
+    // INITIALIZATION ON WINDOW LOAD
+    window.onload = function () {
+      renderShmLoop();
+      renderWaveLoop();
+      renderOpticsLoop();
+      renderLorentzLoop();
+      renderGasLoop();
+      renderLeftHandCanvas();
+      renderRightHandCanvas();
+      renderPhysicsFormulas();
+      reRenderMath();
+    };
+  </script>
+</body>
+</html>
